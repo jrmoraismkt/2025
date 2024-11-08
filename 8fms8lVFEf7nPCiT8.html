@@ -1,0 +1,872 @@
+<html><head><base href="." /><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Quiz Show da Voltagem</title>
+
+<style>
+:root {
+  --neon-blue: #00f3ff;
+  --neon-purple: #b300ff;
+  --dark-bg: #1a1a1a;
+  --status-bar: #212121;
+  --text-color: #ffffff;
+  --question-bg: rgba(33, 33, 33, 0.9);
+  --option-bg: rgba(45, 45, 45, 0.9);
+  --option-hover: rgba(61, 61, 61, 0.9);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Roboto', sans-serif;
+  background: #444e9a;  
+  color: var(--text-color);
+}
+
+.status-bar {
+  background: var(--status-bar);
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8em;
+}
+
+.status-icons {
+  display: flex;
+  gap: 8px;
+}
+
+.quiz-container {
+  padding: 16px;
+  height: calc(100vh - 24px);
+  display: flex;
+  flex-direction: column;
+}
+
+.battery-container {
+  margin: 16px auto;
+  width: 180px;
+  height: 40px;
+  border: 2px solid var(--neon-blue);
+  border-radius: 3px;
+  padding: 2px;
+  background: rgba(0,0,0,0.2);
+}
+
+.battery-top {
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 15px;
+  background: var(--neon-blue);
+  border-radius: 0 2px 2px 0;
+}
+
+.battery-level {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+  transition: width 0.5s ease;
+  border-radius: 1px;
+}
+
+.voltage-display {
+  text-align: center;
+  font-size: 1.2em;
+  color: var(--neon-blue);
+  margin: 8px 0;
+}
+
+.question-container {
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.5s ease;
+}
+
+.question-container.active {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.question {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--question-bg);
+  border: 1px solid rgba(0, 243, 255, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 243, 255, 0.1);
+}
+
+.options {
+  display: grid;
+  gap: 12px;
+}
+
+.option {
+  padding: 16px;
+  background: rgba(28, 41, 122, 0.8);
+  color: #ffffff;
+  border: 1px solid rgba(0, 243, 255, 0.2);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  font-size: 0.95em;
+  box-shadow: 0 2px 8px rgba(0, 243, 255, 0.1);
+  backdrop-filter: blur(5px);
+  position: relative;
+  overflow: hidden;
+}
+
+.option::before {
+  content: attr(data-letter);
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+  color: var(--dark-bg);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  font-weight: bold;
+  font-size: 0.9em;
+  box-shadow: 0 2px 4px rgba(0, 243, 255, 0.2);
+}
+
+.option:hover {
+  background: rgba(38, 51, 132, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 243, 255, 0.2);
+}
+
+.option.selected {
+  background: rgba(48, 61, 142, 0.95);
+  border: 1px solid var(--neon-blue);
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+}
+
+.option.correct {
+  animation: correct 0.5s ease;
+}
+
+.option.wrong {
+  animation: wrong 0.5s ease;
+}
+
+@keyframes correct {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); background: rgba(0, 255, 0, 0.3); }
+  100% { transform: scale(1); }
+}
+
+@keyframes wrong {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); background: rgba(255, 0, 0, 0.3); }
+  100% { transform: scale(1); }
+}
+
+#submit-btn {
+  width: 100%;
+  padding: 16px;
+  margin-top: auto;
+  background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+  border: none;
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 1em;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 243, 255, 0.2);
+}
+
+#submit-btn:active {
+  transform: scale(0.98);
+}
+
+.player-form {
+  padding: 16px;
+  text-align: center;
+}
+
+.player-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  background: var(--option-bg);
+  border: 1px solid rgba(0, 243, 255, 0.2);
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 1em;
+}
+
+.player-input:focus {
+  outline: 2px solid var(--neon-blue);
+}
+
+.player-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.start-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+  border: none;
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 1em;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 243, 255, 0.2);
+}
+
+.timer-bar {
+  width: 100%;
+  height: 4px;
+  background: #2d2d2d;
+  margin: 8px 0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.timer-progress {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, var(--neon-purple), var(--neon-blue));
+  transition: width 0.2s linear;
+}
+
+h1 {
+  font-size: 1.5em;
+  text-align: center;
+  margin: 8px 0;
+}
+
+.canvas-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.end-message {
+  position: relative;
+  z-index: 2;
+  background: rgba(28, 41, 122, 0.9);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  backdrop-filter: blur(5px);
+  border: 1px solid var(--neon-blue);
+  margin-top: 20px;
+}
+
+.win-text {
+  font-size: 2.5em;
+  font-weight: bold;
+  background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+  animation: pulseText 2s infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes pulseText {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+.slide-out {
+  animation: slideOut 0.5s ease forwards;
+}
+
+/* Add inside existing <style> tag */
+.leaderboard {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+  background: rgba(28, 41, 122, 0.8);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.leaderboard th,
+.leaderboard td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 243, 255, 0.2);
+}
+
+.leaderboard th {
+  background: rgba(0, 243, 255, 0.1);
+  font-weight: 500;
+  color: var(--neon-blue);
+}
+
+.leaderboard tr:hover {
+  background: rgba(38, 51, 132, 0.9);
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  #printableRanking {
+    visibility: visible;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  
+  #printableRanking * {
+    visibility: visible;
+  }
+  
+  .print-header {
+    background: #1c297a !important;
+    color: white !important;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .print-table th,
+  .print-table td {
+    border: 1px solid #1c297a;
+    padding: 12px;
+    text-align: left;
+  }
+  
+  .print-table th {
+    background: #e8eaf6 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+<div class="status-bar">
+  <span>9:41</span>
+  <div class="status-icons">
+    <span>📶</span>
+    <span>📡</span>
+    <span>🔋</span>
+  </div>
+</div>
+
+<div class="quiz-container">
+  <div class="voltage-display">0V</div>
+  <div class="battery-container">
+    <div class="battery-top"></div>
+    <div class="battery-level"></div>
+  </div>
+  <img src="C:\Users\jrmor\Downloads/8be5bfe3-41af-4be4-90f4-6ef1efdd9a74.webp" alt="Logo Show da Voltagem" style="width: 400px; display: block; margin: 8px auto;">
+  <div id="quiz">
+    <div class="player-form">
+      <input type="text" class="player-input" id="player-name" placeholder="Digite seu nome" required>
+      <input type="tel" class="player-input" id="player-phone" placeholder="Digite seu telefone" pattern="[0-9]{11}" required>
+      <button class="start-btn" id="start-btn">Iniciar Quiz</button>
+    </div>
+  </div>
+  <button id="submit-btn" style="display: none;">Confirmar Resposta</button>
+</div>
+
+<script>
+let currentQuestion = 0;
+let totalVoltage = 0;
+let playerName = ''; 
+let playerPhone = ''; 
+let correctAnswers = 0;
+let timer;
+let timeLeft;
+let leaderboard = JSON.parse(localStorage.getItem('quizLeaderboard')) || [];
+
+const quizData = [
+  {
+    question: "Qual a distância mínima da rede elétrica para realizar construções e reformas?",
+    options: ["1m", "3m", "10m"],
+    correct: 1,
+    voltage: 1000
+  },
+  {
+    question: "Quando a vegetação está tocando a rede elétrica, o que fazer?",
+    options: ["chamar a Equatorial para realizar a poda.", "contratar um profissional para realizar a poda.", "subir na escada e cortar com um facão."],
+    correct: 0,
+    voltage: 2000
+  },
+  {
+    question: "Quando o celular estiver carregando, o que fazer?",
+    options: ["usar normalmente.", "dependendo do carregador, pode usar.", "esperar carregar para usar."],
+    correct: 2,
+    voltage: 5000
+  },
+  {
+    question: "O que fazer quando encontrar cabos e fios partidos?",
+    options: ["transitar normalmente.", "entrar em contato com a Equatorial e isolar a área.", "tentar afastar com uma vara."],
+    correct: 1,
+    voltage: 10000
+  },
+  {
+    question: "Em caso de acidente doméstico com choque elétrico, primeira coisa a fazer...",
+    options: ["desligar a chave geral/disjuntor.", "tocar na pessoa e tentar ajudar.", "chamar a Equatorial."],
+    correct: 0,
+    voltage: 20000
+  }
+];
+
+function startTimer() {
+  timeLeft = 20;
+  const timerProgress = document.querySelector('.timer-progress');
+  
+  clearInterval(timer);
+  timerProgress.style.width = '100%';
+  
+  timer = setInterval(() => {
+    timeLeft--;
+    timerProgress.style.width = `${(timeLeft/20) * 100}%`;
+    
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      const currentQuestionContainer = document.querySelector('.question-container.active');
+      if (currentQuestionContainer) {
+        currentQuestionContainer.classList.add('slide-out');
+      }
+      setTimeout(() => {
+        currentQuestion++;
+        if (currentQuestion < quizData.length) {
+          createQuestion();
+        } else {
+          endQuiz();
+        }
+        updateBatteryLevel();
+      }, 500);
+    }
+  }, 1000);
+}
+
+function updateBatteryLevel() {
+  const percentage = (currentQuestion / quizData.length) * 100;
+  document.querySelector('.battery-level').style.width = `${percentage}%`;
+  document.querySelector('.voltage-display').textContent = `${totalVoltage}V`;
+}
+
+function startQuiz() {
+  playerName = document.getElementById('player-name').value.trim();
+  playerPhone = document.getElementById('player-phone').value.trim();
+  if (!playerName || !playerPhone || !/^[0-9]{11}$/.test(playerPhone)) {
+    alert('Por favor preencha nome e telefone (11 dígitos) corretamente');
+    return;
+  }
+  
+  // Save initial player data
+  localStorage.setItem('lastPlayer', JSON.stringify({
+    name: playerName,
+    phone: playerPhone
+  }));
+  
+  document.querySelector('.player-form').style.display = 'none';
+  document.getElementById('submit-btn').style.display = 'block';
+  createQuestion();
+}
+
+// Add this helper function to save player score
+function savePlayerScore(name, phone, score) {
+  const player = {
+    name: name,
+    phone: phone,
+    score: score,
+    date: new Date().toLocaleDateString()
+  };
+  
+  // Load existing leaderboard first
+  let leaderboard = JSON.parse(localStorage.getItem('quizLeaderboard')) || [];
+  
+  // Add new player
+  leaderboard.push(player);
+  
+  // Sort by score descending
+  leaderboard.sort((a, b) => b.score - a.score);
+  
+  // Keep only top 10 scores
+  leaderboard = leaderboard.slice(0, 10);
+  
+  // Save back to localStorage
+  localStorage.setItem('quizLeaderboard', JSON.stringify(leaderboard));
+  
+  return leaderboard;
+}
+
+function getLeaderboardHTML() {
+  if (leaderboard.length === 0) return '';
+  
+  const printableSection = `
+    <div id="printableRanking" style="display: none;">
+      <div class="print-header">
+        <h1>Ranking - Show da Voltagem</h1>
+      </div>
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Telefone</th>
+            <th>Pontos</th>
+            <th>Data</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${leaderboard.map(player => `
+            <tr>
+              <td>${player.name}</td>
+              <td>${player.phone}</td>
+              <td>${player.score}</td>
+              <td>${player.date}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  return `
+    ${printableSection}
+    <table class="leaderboard">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Telefone</th>
+          <th>Pontos</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${leaderboard.map(player => `
+          <tr>
+            <td>${player.name}</td>
+            <td>${player.phone}</td>
+            <td>${player.score}</td>
+            <td>${player.date}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <button onclick="printRanking()" class="start-btn" style="margin-top: 10px;">Imprimir Ranking</button>
+  `;
+}
+
+// Add this new function
+function printRanking() {
+  document.getElementById('printableRanking').style.display = 'block';
+  window.print();
+  document.getElementById('printableRanking').style.display = 'none';
+}
+
+function checkPassword() {
+  const password = prompt("Digite a senha para ver o ranking:");
+  return password === "2024";
+}
+
+function toggleLeaderboard() {
+  const leaderboardContainer = document.getElementById('leaderboardContainer');
+  const button = document.querySelector('button[onclick="toggleLeaderboard()"]');
+  
+  if (leaderboardContainer.style.display === 'none') {
+    if (!checkPassword()) {
+      alert("Senha incorreta!");
+      return;
+    }
+    leaderboardContainer.style.display = 'block';
+    button.textContent = 'Ocultar Ranking';
+  } else {
+    leaderboardContainer.style.display = 'none';
+    button.textContent = 'Mostrar Ranking';
+  }
+}
+
+// Modify the endQuiz function to save automatically
+function endQuiz() {
+  // Save player score automatically
+  savePlayerScore(playerName, playerPhone, correctAnswers);
+  
+  let message = `<div class="end-message">`;
+    
+  if (correctAnswers === quizData.length) {
+    message += `
+      <h2 class="win-text">PARABÉNS<br>VOCÊ GANHOU!</h2>`;
+  } else {
+    message += `
+      <h2>Obrigado!</h2>
+      <p>Não foi dessa vez.</p>
+      <p>Você acertou ${correctAnswers} de ${quizData.length} questões.</p>`;
+  }
+  
+  message += `
+    <button onclick="location.reload()" class="start-btn" style="margin-top: 20px;">Jogar Novamente</button>
+    <button onclick="toggleLeaderboard()" class="start-btn" style="margin-top: 10px;">Mostrar Ranking</button>
+    <div id="leaderboardContainer" style="display: none;">
+      ${getLeaderboardHTML()}
+    </div>
+    </div>`;
+
+  document.getElementById('quiz').innerHTML = `
+    <div class="canvas-container"></div>
+    ${message}
+  `;
+  document.getElementById('submit-btn').style.display = 'none';
+
+  if (correctAnswers === quizData.length) {
+    createFireworks(true);
+  } else {
+    initLoseAnimation();
+  }
+}
+
+function createFireworks(correct) {
+  const container = document.createElement('div');
+  container.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+  `;
+  document.body.appendChild(container);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ alpha: true });
+  
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  container.appendChild(renderer.domElement);
+  
+  const particles = [];
+  const colors = [0x00f3ff, 0xb300ff, 0xffffff];
+  
+  for(let i = 0; i < 100; i++) {
+    const geometry = new THREE.SphereGeometry(0.05, 8, 8);
+    const material = new THREE.MeshBasicMaterial({ 
+      color: colors[Math.floor(Math.random() * colors.length)]
+    });
+    const particle = new THREE.Mesh(geometry, material);
+    
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 0.1 + Math.random() * 0.2;
+    particle.userData = {
+      velocity: new THREE.Vector3(
+        Math.cos(angle) * speed,
+        Math.sin(angle) * speed,
+        (Math.random() - 0.5) * speed
+      ),
+      gravity: -0.005
+    };
+    
+    particle.position.set(0, -2, 0);
+    particles.push(particle);
+    scene.add(particle);
+  }
+  
+  camera.position.z = 5;
+  
+  let animationFrame;
+  function animate() {
+    animationFrame = requestAnimationFrame(animate);
+    
+    particles.forEach(particle => {
+      particle.position.add(particle.userData.velocity);
+      particle.userData.velocity.y += particle.userData.gravity;
+    });
+    
+    renderer.render(scene, camera);
+  }
+  
+  animate();
+  
+  setTimeout(() => {
+    cancelAnimationFrame(animationFrame);
+    container.remove();
+  }, 2000);
+}
+
+function initLoseAnimation() {
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ alpha: true });
+  
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.querySelector('.canvas-container').appendChild(renderer.domElement);
+  
+  const particles = new THREE.Group();
+  
+  for(let i = 0; i < 200; i++) {
+    const geometry = new THREE.SphereGeometry(0.03, 8, 8);
+    const material = new THREE.MeshBasicMaterial({ 
+      color: Math.random() > 0.5 ? 0xff0000 : 0x444444,
+      transparent: true,
+      opacity: 0.8
+    });
+    const particle = new THREE.Mesh(geometry, material);
+    
+    particle.position.set(
+      (Math.random() - 0.5) * 5,
+      (Math.random() - 0.5) * 5,
+      (Math.random() - 0.5) * 5
+    );
+    particle.userData = {
+      velocity: new THREE.Vector3(
+        (Math.random() - 0.5) * 0.05,
+        (Math.random() - 0.5) * 0.05,
+        (Math.random() - 0.5) * 0.05
+      )
+    };
+    
+    particles.add(particle);
+  }
+  
+  scene.add(particles);
+  camera.position.z = 5;
+  
+  function animate() {
+    requestAnimationFrame(animate);
+    
+    particles.children.forEach(particle => {
+      particle.position.add(particle.userData.velocity);
+      
+      if(particle.position.length() > 10) {
+        particle.position.setLength(Math.random() * 2);
+      }
+    });
+    
+    renderer.render(scene, camera);
+  }
+  
+  animate();
+}
+
+document.getElementById('start-btn').addEventListener('click', startQuiz);
+document.getElementById('submit-btn').addEventListener('click', checkAnswer);
+
+function createQuestion() {
+  const quizElement = document.getElementById('quiz');
+  const question = quizData[currentQuestion];
+  
+  const oldQuestion = document.querySelector('.question-container');
+  if (oldQuestion) {
+    oldQuestion.classList.add('slide-out');
+    setTimeout(() => oldQuestion.remove(), 500);
+  }
+  
+  const newQuestionHTML = `
+    <div class="question-container">
+      <div class="timer-bar">
+        <div class="timer-progress"></div>
+      </div>
+      <div class="question">
+        <p>${currentQuestion + 1}. ${question.question}</p>
+        <div class="options">
+          ${question.options.map((option, index) => `
+            <div class="option" data-option="${index}" data-letter="${String.fromCharCode(65 + index)}">
+              ${option}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  quizElement.innerHTML = newQuestionHTML;
+  
+  setTimeout(() => {
+    const newQuestion = document.querySelector('.question-container');
+    newQuestion.classList.add('active');
+    startTimer();
+  }, 100);
+  
+  document.querySelectorAll('.option').forEach(option => {
+    option.addEventListener('click', selectOption);
+  });
+}
+
+function selectOption(e) {
+  document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+  e.target.classList.add('selected');
+}
+
+function checkAnswer() {
+  clearInterval(timer);
+  const selectedOption = document.querySelector('.option.selected');
+  if (!selectedOption) return;
+  
+  const selected = parseInt(selectedOption.dataset.option);
+  const correct = quizData[currentQuestion].correct;
+  
+  if (selected === correct) {
+    correctAnswers++;
+    totalVoltage += quizData[currentQuestion].voltage;
+    selectedOption.classList.add('correct');
+    createFireworks(true);
+  } else {
+    selectedOption.classList.add('wrong');
+    document.querySelector(`.option[data-option="${correct}"]`).classList.add('correct');
+  }
+  
+  document.querySelectorAll('.option').forEach(opt => {
+    opt.style.pointerEvents = 'none';
+  });
+  
+  const currentQuestionContainer = document.querySelector('.question-container');
+  currentQuestionContainer.classList.add('slide-out');
+  
+  setTimeout(() => {
+    currentQuestion++;
+    if (currentQuestion < quizData.length) {
+      createQuestion();
+    } else {
+      endQuiz();
+    }
+    updateBatteryLevel();
+  }, 500);
+}
+
+updateBatteryLevel();
+</script>
+
+</body></html>
