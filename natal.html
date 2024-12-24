@@ -1,0 +1,598 @@
+<html><head><base href="/">
+<meta charset="UTF-8">
+<title>Natal Bank DEJLRV</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #1a237e, #0d47a1);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @keyframes countDown {
+        from {
+            transform: scale(1.2);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes coinFall {
+        0% {
+            transform: translate(0, -20px) rotate(0deg);
+            opacity: 1;
+        }
+        50% {
+            transform: translate(var(--x-offset), 0) rotate(180deg);
+            opacity: 0.8;
+        }
+        100% {
+            transform: translate(var(--x-offset), 20px) rotate(360deg);
+            opacity: 0;
+        }
+    }
+
+    .coin {
+        position: absolute;
+        font-size: 24px;
+        color: gold;
+        text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        animation: coinFall 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        content: "⭕";  
+    }
+
+    .balance-animation {
+        animation: countDown 0.5s ease-out;
+    }
+
+    .container {
+        width: 90%;
+        max-width: 600px;
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        backdrop-filter: blur(10px);
+    }
+
+    .header {
+        text-align: center;
+        color: #1a237e;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #e3f2fd;
+        padding-bottom: 20px;
+    }
+
+    .header h1 {
+        font-size: 2.5em;
+        margin: 0;
+        color: #1a237e;
+    }
+
+    .profile {
+        text-align: center;
+        margin-bottom: 20px;
+        background: #e3f2fd;
+        padding: 20px;
+        border-radius: 15px;
+    }
+
+    .profile-pic {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        margin: 10px auto;
+        display: block;
+        object-fit: cover;
+        border: 3px solid #1a237e;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .profile-name {
+        font-size: 1.4em;
+        color: #1a237e;
+        margin: 10px 0;
+        font-weight: bold;
+    }
+
+    .balance {
+        font-size: 2.2em;
+        text-align: center;
+        padding: 30px;
+        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        color: #1a237e;
+        font-weight: bold;
+    }
+
+    .transaction-form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    input {
+        padding: 15px;
+        border-radius: 12px;
+        border: 2px solid #bbdefb;
+        font-size: 1em;
+        transition: all 0.3s ease;
+        background: #fff;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #1a237e;
+        box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+    }
+
+    button {
+        padding: 15px;
+        border-radius: 12px;
+        border: none;
+        background: #1a237e;
+        color: white;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(26, 35, 126, 0.4);
+        background: #0d47a1;
+    }
+
+    .reset-button {
+        background: #ff1744;
+        margin-top: 10px;
+    }
+
+    .reset-button:hover {
+        background: #d50000;
+    }
+
+    .transactions {
+        border-top: 2px solid #e3f2fd;
+        padding-top: 20px;
+    }
+
+    .transactions h3 {
+        color: #1a237e;
+        margin-bottom: 20px;
+    }
+
+    .transaction {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        border-radius: 12px;
+        background: #f5f5f5;
+        margin-bottom: 10px;
+        transition: transform 0.2s;
+        border-left: 4px solid #1a237e;
+    }
+
+    .transaction:hover {
+        transform: translateX(5px);
+        background: #e3f2fd;
+    }
+
+    .negative {
+        color: #d50000;
+        font-weight: 600;
+    }
+
+    .error {
+        color: #d50000;
+        text-align: center;
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(213, 0, 0, 0.1);
+        animation: shake 0.4s ease-in-out;
+        margin-bottom: 10px;
+    }
+
+    .setup-form {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .welcome-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1a3f2a, #2d714f);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        animation: fadeOut 0.5s ease-in-out 10s forwards;
+    }
+
+    .welcome-message {
+        color: white;
+        font-size: 2.5em;
+        text-align: center;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        animation: scaleIn 0.5s ease-out;
+        margin: 20px;
+    }
+
+    .loading-message {
+        color: white;
+        font-size: 1.2em;
+        margin-top: 20px;
+        opacity: 0.8;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 0.4; }
+        50% { opacity: 0.8; }
+        100% { opacity: 0.4; }
+    }
+
+    .christmas-decoration {
+        position: relative;
+        width: 100%;
+        height: 100px;
+    }
+
+    .snowflake {
+        position: absolute;
+        color: white;
+        font-size: 20px;
+        animation: snowfall 3s linear infinite;
+        text-shadow: 0 0 5px rgba(255,255,255,0.8);
+    }
+
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; visibility: hidden; }
+    }
+
+    @keyframes scaleIn {
+        from { transform: scale(0.5); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes snowfall {
+        0% {
+            transform: translateY(-20px) rotate(0deg);
+            opacity: 0;
+        }
+        50% {
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(120px) rotate(360deg);
+            opacity: 0;
+        }
+    }
+</style>
+</head>
+<body>
+    <div class="welcome-screen">
+        <div class="christmas-decoration" id="snowContainer"></div>
+        <div class="welcome-message">
+            Sejam todos bem vindos,<br>
+            um FELIZ NATAL!!<br>
+            Junior&Débora 
+        </div>
+        <div class="loading-message">
+            Estamos carregando seus dados...
+        </div>
+        <div class="christmas-decoration" id="snowContainer2"></div>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>&#x1f3e6; Natal Bank DEJLRV</h1>
+        </div>
+
+        <div id="setup-section" class="setup-form">
+            <input type="text" id="user-name" placeholder="Seu nome" required>
+            <input type="file" id="profile-pic" accept="image/*" required>
+            <button onclick="setupProfile()">Come&#xe7;ar</button>
+        </div>
+        
+        <div id="main-content" style="display: none;">
+            <div class="profile">
+                <img id="profile-image" src alt="Foto de perfil" class="profile-pic">
+                <div id="profile-name" class="profile-name"></div>
+            </div>
+
+            <div class="balance">
+                Saldo atual: R&#x24; <span id="current-balance">25000.00</span>
+            </div>
+
+            <form class="transaction-form" onsubmit="return makeTransaction(event)">
+                <input type="number" id="amount" step="0.01" placeholder="Valor da transa&#xe7;&#xe3;o" required>
+                <button type="submit">Realizar Transa&#xe7;&#xe3;o</button>
+                <button type="button" class="reset-button" onclick="resetBalance()">Resetar Saldo</button>
+            </form>
+
+            <div id="error-message"></div>
+
+            <div class="transactions">
+                <h3>Hist&#xf3;rico de Transa&#xe7;&#xf5;es</h3>
+                <div id="transaction-history"></div>
+            </div>
+        </div>
+        
+        <div id="reset-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h3>Resetar Saldo</h3>
+                <input type="password" id="reset-password" placeholder="Digite a senha">
+                <div class="modal-buttons">
+                    <button onclick="confirmReset()">Confirmar</button>
+                    <button onclick="closeResetModal()">Cancelar</button>
+                </div>
+                <div id="modal-error" class="error"></div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="coinSound" src="https://assets.mixkit.co/active_storage/sfx/952/952-preview.mp3" preload="auto"></audio>
+
+    <script>
+        let balance = localStorage.getItem('balance') ? parseFloat(localStorage.getItem('balance')) : 25000.00;
+        let transactions = localStorage.getItem('transactions') ? JSON.parse(localStorage.getItem('transactions')) : [];
+        let profileData = localStorage.getItem('profileData') ? JSON.parse(localStorage.getItem('profileData')) : null;
+
+        function createSnowflakes() {
+            const containers = [
+                document.getElementById('snowContainer'),
+                document.getElementById('snowContainer2')
+            ];
+            
+            containers.forEach(container => {
+                for(let i = 0; i < 20; i++) {
+                    const snowflake = document.createElement('div');
+                    snowflake.className = 'snowflake';
+                    snowflake.style.left = `${Math.random() * 100}%`;
+                    snowflake.style.animationDelay = `${Math.random() * 3}s`;
+                    snowflake.innerHTML = '❄';
+                    container.appendChild(snowflake);
+                }
+            });
+        }
+
+        function resetBalance() {
+            document.getElementById('reset-modal').style.display = 'flex';
+        }
+
+        function setupProfile() {
+            const name = document.getElementById('user-name').value;
+            const fileInput = document.getElementById('profile-pic');
+            if (!name || !fileInput.files[0]) {
+                showError('Por favor, preencha todos os campos');
+                return;
+            }
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const profileData = {
+                    name: name,
+                    image: e.target.result
+                };
+                localStorage.setItem('profileData', JSON.stringify(profileData));
+                document.getElementById('profile-image').src = e.target.result;
+                document.getElementById('profile-name').textContent = name;
+                document.getElementById('setup-section').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function createCoinAnimation() {
+            const balanceElement = document.querySelector('.balance');
+            const coin = document.createElement('div');
+            coin.className = 'coin';
+            coin.textContent = '⭕'; 
+            
+            // Random position and trajectory
+            const startX = Math.random() * 100;
+            const xOffset = (Math.random() - 0.5) * 100; // Random spread between -50px and 50px
+            
+            coin.style.left = `${startX}%`;
+            coin.style.setProperty('--x-offset', `${xOffset}px`);
+            
+            balanceElement.appendChild(coin);
+            
+            setTimeout(() => {
+                coin.remove();
+            }, 800);
+        }
+
+        function animateBalance(startValue, endValue, baseAmount) {
+            const balanceElement = document.getElementById('current-balance');
+            const duration = Math.abs(endValue - startValue) * 3000 / 1000;
+            const steps = 60;
+            const stepDuration = duration / steps;
+            const stepValue = (endValue - startValue) / steps;
+            let currentStep = 0;
+            
+            // Modify sound behavior
+            const coinSound = document.getElementById('coinSound');
+            coinSound.volume = 0.5;
+            coinSound.playbackRate = 1.2;
+            coinSound.loop = true; 
+            coinSound.play();
+            
+            const interval = setInterval(() => {
+                currentStep++;
+                const currentValue = startValue + stepValue * currentStep;
+                balanceElement.textContent = currentValue.toFixed(2);
+                balanceElement.classList.add('balance-animation');
+                if (currentStep >= steps) {
+                    clearInterval(interval);
+                    balanceElement.textContent = endValue.toFixed(2);
+                    coinSound.loop = false; 
+                    coinSound.pause();
+                    coinSound.currentTime = 0;
+                }
+            }, stepDuration);
+
+            // Adjust coin animation timing
+            const numCoins = Math.ceil(duration / 200);
+            for (let i = 0; i < numCoins; i++) {
+                setTimeout(() => createCoinAnimation(), i * 200);
+            }
+        }
+
+        function updateBalance() {
+            localStorage.setItem('balance', balance.toString());
+            document.getElementById('current-balance').textContent = balance.toFixed(2);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.className = 'error';
+            setTimeout(() => {
+                errorDiv.textContent = '';
+                errorDiv.className = '';
+            }, 3000);
+        }
+
+        function makeTransaction(event) {
+            event.preventDefault();
+            const amount = parseFloat(document.getElementById('amount').value);
+            if (amount <= 0) {
+                showError('Por favor, insira um valor válido.');
+                return false;
+            }
+            if (amount > balance) {
+                showError('Saldo insuficiente para esta transação!');
+                return false;
+            }
+            const oldBalance = balance;
+            balance -= amount;
+            animateBalance(oldBalance, balance, amount);
+            transactions.unshift({
+                amount,
+                date: new Date()
+            });
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            updateBalance();
+            updateTransactionHistory();
+            event.target.reset();
+            
+            // Create more rings for a more dramatic effect
+            const numCoins = Math.ceil(amount / 100); // One ring per 100 units
+            const maxCoins = 20; // Cap maximum number of rings
+            const actualCoins = Math.min(numCoins, maxCoins);
+            
+            for (let i = 0; i < actualCoins; i++) {
+                setTimeout(() => createCoinAnimation(), i * 50); // Faster spawn rate
+            }
+            
+            return false;
+        }
+
+        function updateTransactionHistory() {
+            const historyDiv = document.getElementById('transaction-history');
+            historyDiv.innerHTML = transactions.map(transaction => `
+                        <div class="transaction">
+                            <div>
+                                <small style="color: #666">
+                                    ${new Date(transaction.date).toLocaleDateString()} ${new Date(transaction.date).toLocaleTimeString()}
+                                </small>
+                            </div>
+                            <div class="negative">
+                                -R$ ${transaction.amount.toFixed(2)}
+                            </div>
+                        </div>
+                    `).join('');
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').style.display = 'none';
+            document.getElementById('reset-password').value = '';
+            document.getElementById('modal-error').textContent = '';
+        }
+
+        function confirmReset() {
+            const password = document.getElementById('reset-password').value;
+            if (password === '2204') {
+                const oldBalance = balance;
+                balance = 25000.00;
+                animateBalance(oldBalance, balance, Math.abs(balance - oldBalance));
+                transactions = [];
+                localStorage.setItem('balance', balance.toString());
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+                updateTransactionHistory();
+                closeResetModal();
+            } else {
+                document.getElementById('modal-error').textContent = 'Senha incorreta';
+                setTimeout(() => {
+                    document.getElementById('modal-error').textContent = '';
+                }, 3000);
+            }
+        }
+
+        window.onload = function () {
+            createSnowflakes();
+            
+            setTimeout(() => {
+                const welcomeScreen = document.querySelector('.welcome-screen');
+                welcomeScreen.style.display = 'none';
+            }, 10000); 
+
+            if (profileData) {
+                document.getElementById('profile-image').src = profileData.image;
+                document.getElementById('profile-name').textContent = profileData.name;
+                document.getElementById('setup-section').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                updateBalance();
+                updateTransactionHistory();
+            }
+        };
+        updateBalance();
+    </script>
+</body>
+</html>
